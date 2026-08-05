@@ -43,15 +43,20 @@ export function VotersPage() {
       setError('Supabase não configurado.')
       return
     }
-    const [electionResult, votersResult] = await Promise.all([
-      getElection(id),
-      supabase.from('voters').select('*').eq('election_id', id).order('name'),
-    ])
-    setElection(electionResult.data as ElectionWithCompany | null)
-    setVoters((votersResult.data as Voter[] | null) ?? [])
-    if (electionResult.error || votersResult.error)
+    try {
+      const [electionResult, votersResult] = await Promise.all([
+        getElection(id),
+        supabase.from('voters').select('*').eq('election_id', id).order('name'),
+      ])
+      setElection(electionResult.data as ElectionWithCompany | null)
+      setVoters((votersResult.data as Voter[] | null) ?? [])
+      if (electionResult.error || votersResult.error)
+        setError('Não foi possível carregar os eleitores.')
+    } catch {
       setError('Não foi possível carregar os eleitores.')
-    setLoading(false)
+    } finally {
+      setLoading(false)
+    }
   }
   // load is scoped to this page and the election id is the only trigger.
   /* eslint-disable react-hooks/exhaustive-deps */

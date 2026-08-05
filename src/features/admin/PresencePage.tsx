@@ -28,16 +28,21 @@ export function PresencePage() {
       setLoading(false)
       return
     }
-    void supabase
-      .from('voters')
-      .select('*')
-      .eq('election_id', id)
-      .order('name')
-      .then(({ data, error: requestError }) => {
+    void (async () => {
+      try {
+        const { data, error: requestError } = await supabase
+          .from('voters')
+          .select('*')
+          .eq('election_id', id)
+          .order('name')
         setVoters((data as Voter[] | null) ?? [])
         if (requestError) setError('Não foi possível carregar a presença.')
+      } catch {
+        setError('Não foi possível carregar a presença.')
+      } finally {
         setLoading(false)
-      })
+      }
+    })()
   }, [id])
 
   const filtered = useMemo(

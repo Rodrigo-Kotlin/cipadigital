@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useEffect } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { VotingFlowPage } from '../features/voting/VotingFlowPage'
@@ -20,6 +21,13 @@ vi.mock('../lib/voting/votingService', () => ({
 }))
 
 vi.mock('../lib/cpf/hashCpf', () => ({ hashCpf: vi.fn().mockResolvedValue('cpf-hash') }))
+
+vi.mock('../components/security/TurnstileWidget', () => ({
+  TurnstileWidget: ({ onToken }: { onToken: (token: string) => void }) => {
+    useEffect(() => onToken('test-turnstile-token'), [onToken])
+    return null
+  },
+}))
 
 const election = {
   id: 'election-id',
@@ -100,7 +108,13 @@ describe('voter flow', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /confirmar voto/i }))
 
-    expect(mockSubmit).toHaveBeenCalledWith('arati-2026', 'cpf-hash', 'candidate-id', false)
+    expect(mockSubmit).toHaveBeenCalledWith(
+      'arati-2026',
+      '52998224725',
+      'candidate-id',
+      false,
+      'test-turnstile-token',
+    )
     expect(
       await screen.findByRole('heading', { name: /voto registrado com sucesso/i }),
     ).toBeInTheDocument()

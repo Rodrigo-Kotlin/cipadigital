@@ -24,7 +24,7 @@ export function downloadCsv(filename: string, headers: string[], rows: unknown[]
   }, 1000)
 }
 
-function escapeHtml(value: unknown): string {
+export function escapeHtml(value: unknown): string {
   return String(value ?? '').replace(
     /[&<>'"]/g,
     (char) =>

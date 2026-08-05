@@ -20,6 +20,7 @@ import {
   attendanceTableHtml,
   buildAtaText,
   downloadCsv,
+  escapeHtml,
   printReport,
   tallyTableHtml,
 } from '../../lib/reports/exporters'
@@ -44,22 +45,28 @@ export function ApurationPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    void getElection(id).then(async ({ data, error: electionError }) => {
-      const found = data as ElectionWithCompany | null
-      setElection(found)
-      if (electionError || !found) setError('Eleição não encontrada.')
-      else if (['closed', 'tallied', 'archived'].includes(found.status)) {
-        const result = await getElectionTally(id)
-        setTally(result.data)
-        if (result.error)
-          setError(
-            result.error.message.includes('TALLY_NOT_AVAILABLE')
-              ? 'A apuração ainda não está disponível.'
-              : 'Não foi possível carregar a apuração.',
-          )
+    void (async () => {
+      try {
+        const { data, error: electionError } = await getElection(id)
+        const found = data as ElectionWithCompany | null
+        setElection(found)
+        if (electionError || !found) setError('Eleição não encontrada.')
+        else if (['closed', 'tallied', 'archived'].includes(found.status)) {
+          const result = await getElectionTally(id)
+          setTally(result.data)
+          if (result.error)
+            setError(
+              result.error.message.includes('TALLY_NOT_AVAILABLE')
+                ? 'A apuração ainda não está disponível.'
+                : 'Não foi possível carregar a apuração.',
+            )
+        }
+      } catch {
+        setError('Não foi possível carregar a apuração.')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
-    })
+    })()
   }, [id])
 
   async function loadPresence() {
@@ -116,7 +123,7 @@ export function ApurationPage() {
     if (!tally) return
     printReport(
       'Relatório de participação',
-      `<h1>Relatório de participação</h1><p>${tally.company_name ?? ''} · ${tally.title} · Gestão ${tally.management_period}</p><table><tbody><tr><th>Eleitores aptos</th><td>${tally.total_active_voters}</td></tr><tr><th>Votantes</th><td>${tally.total_attendance}</td></tr><tr><th>Participação</th><td>${tally.participation_percentage}%</td></tr></tbody></table>`,
+      `<h1>Relatório de participação</h1><p>${escapeHtml(tally.company_name ?? '')} · ${escapeHtml(tally.title)} · Gestão ${escapeHtml(tally.management_period)}</p><table><tbody><tr><th>Eleitores aptos</th><td>${tally.total_active_voters}</td></tr><tr><th>Votantes</th><td>${tally.total_attendance}</td></tr><tr><th>Participação</th><td>${tally.participation_percentage}%</td></tr></tbody></table>`,
     )
     await recordAuditLog('report_participation_pdf', id)
   }
@@ -125,7 +132,7 @@ export function ApurationPage() {
     if (!tally) return
     printReport(
       'Resultado final',
-      `<h1>Resultado final</h1><p>${tally.company_name ?? ''} · ${tally.title} · Gestão ${tally.management_period}</p>${tallyTableHtml(tally)}`,
+      `<h1>Resultado final</h1><p>${escapeHtml(tally.company_name ?? '')} · ${escapeHtml(tally.title)} · Gestão ${escapeHtml(tally.management_period)}</p>${tallyTableHtml(tally)}`,
     )
     await recordAuditLog('report_final_result_pdf', id)
   }

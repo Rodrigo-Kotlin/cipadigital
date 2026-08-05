@@ -1,3 +1,5 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.56.0'
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -33,6 +35,40 @@ Deno.serve(async (request) => {
     return Response.json({ error: 'METHOD_NOT_ALLOWED' }, { status: 405, headers: corsHeaders })
 
   try {
+    const authorization = request.headers.get('Authorization')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!authorization || !supabaseUrl || !anonKey || !serviceRoleKey)
+      return Response.json(
+        { error: 'ADMIN_ACCESS_REQUIRED' },
+        { status: 401, headers: corsHeaders },
+      )
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authorization } },
+      auth: { persistSession: false },
+    })
+    const { data: authData } = await authClient.auth.getUser()
+    if (!authData.user)
+      return Response.json(
+        { error: 'ADMIN_ACCESS_REQUIRED' },
+        { status: 401, headers: corsHeaders },
+      )
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    })
+    const { data: admin } = await adminClient
+      .from('admin_users')
+      .select('id')
+      .eq('id', authData.user.id)
+      .eq('active', true)
+      .maybeSingle()
+    if (!admin)
+      return Response.json(
+        { error: 'ADMIN_ACCESS_REQUIRED' },
+        { status: 403, headers: corsHeaders },
+      )
+
     const { cpf } = await request.json()
     const normalizedCpf = normalizeCpf(cpf)
     if (!isValidCpf(normalizedCpf))

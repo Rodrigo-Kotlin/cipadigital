@@ -8,8 +8,9 @@ import { Card } from '../../components/ui/Card'
 import { InputCPF } from '../../components/ui/InputCPF'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { Button } from '../../components/ui/Button'
-import { hashCpf } from '../../lib/cpf/hashCpf'
 import { validateCpf } from '../../lib/cpf/validateCpf'
+import { TurnstileWidget } from '../../components/security/TurnstileWidget'
+import { getVotingAvailability } from '../../lib/voting/votingAvailability'
 import {
   getActiveCandidates,
   getElectionBySlug,
@@ -21,27 +22,6 @@ import type { PublicCandidate, PublicElection, VoterAccessResult } from '../../l
 
 type VotingStage = 'access' | 'confirm' | 'ballot' | 'success'
 
-function votingWindowLabel(election: PublicElection): string {
-  const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeZone: 'America/Sao_Paulo',
-  })
-  const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
-    timeStyle: 'short',
-    timeZone: 'America/Sao_Paulo',
-  })
-  return `Período de votação: ${dateFormatter.format(new Date(election.voting_start))}, das ${timeFormatter.format(new Date(election.voting_start))} às ${timeFormatter.format(new Date(election.voting_end))}.`
-}
-
-function isOutsideVotingWindow(election: PublicElection): boolean {
-  const now = Date.now()
-  return (
-    election.status === 'open' &&
-    (now < new Date(election.voting_start).getTime() ||
-      now > new Date(election.voting_end).getTime())
-  )
-}
-
 export function VotingFlowPage() {
   const { electionSlug = '' } = useParams()
   const navigate = useNavigate()
@@ -49,7 +29,8 @@ export function VotingFlowPage() {
   const [voter, setVoter] = useState<VoterAccessResult | null>(null)
   const [candidates, setCandidates] = useState<PublicCandidate[]>([])
   const [cpf, setCpf] = useState('')
-  const [cpfHash, setCpfHash] = useState('')
+  const [accessTurnstileToken, setAccessTurnstileToken] = useState('')
+  const [voteTurnstileToken, setVoteTurnstileToken] = useState('')
   const [selectedCandidate, setSelectedCandidate] = useState<PublicCandidate | null>(null)
   const [isBlank, setIsBlank] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -92,10 +73,8 @@ export function VotingFlowPage() {
       setError('Você está offline. Conecte-se à internet para acessar a votação.')
       return
     }
-    if (outsideVotingWindow && election) {
-      setError(
-        `A votação está aberta, mas fora do horário permitido. ${votingWindowLabel(election)}`,
-      )
+    if (election && !getVotingAvailability(election).available) {
+      setError(getVotingAvailability(election).message)
       return
     }
     if (!validateCpf(cpf)) {
@@ -104,8 +83,11 @@ export function VotingFlowPage() {
     }
     setSubmitting(true)
     try {
-      const hash = await hashCpf(cpf)
-      const access = await verifyVoterAccess(electionSlug, hash)
+      if (!accessTurnstileToken) {
+        setError('Conclua a verificação de segurança para continuar.')
+        return
+      }
+      const access = await verifyVoterAccess(electionSlug, cpf, accessTurnstileToken)
       if (access.error || !access.data?.allowed) {
         setError(
           mapVotingError(access.error ?? new Error(access.data?.reason ?? 'VOTER_NOT_FOUND')),
@@ -117,7 +99,6 @@ export function VotingFlowPage() {
         setError(mapVotingError(candidateResult.error))
         return
       }
-      setCpfHash(hash)
       setVoter(access.data)
       setCandidates(candidateResult.data)
       setStage('confirm')
@@ -129,28 +110,36 @@ export function VotingFlowPage() {
   }
 
   async function confirmVote() {
-    if (!election || !cpfHash || (!selectedCandidate && !isBlank) || offline) {
+    if (!election || !cpf || !voteTurnstileToken || (!selectedCandidate && !isBlank) || offline) {
       if (offline) setError('Você está offline. Não é possível registrar o voto.')
+      else if (!voteTurnstileToken) setError('Conclua a verificação de segurança para votar.')
       return
     }
     setSubmitting(true)
     setError('')
-    const result = await submitVote(
-      election.slug,
-      cpfHash,
-      isBlank ? null : (selectedCandidate?.id ?? null),
-      isBlank,
-    )
-    if (result.error) setError(mapVotingError(result.error))
-    else {
-      setCpf('')
-      setCpfHash('')
-      setSelectedCandidate(null)
-      setIsBlank(false)
-      setConfirmOpen(false)
-      setStage('success')
+    try {
+      const result = await submitVote(
+        election.slug,
+        cpf,
+        isBlank ? null : (selectedCandidate?.id ?? null),
+        isBlank,
+        voteTurnstileToken,
+      )
+      if (result.error) setError(mapVotingError(result.error))
+      else {
+        setCpf('')
+        setAccessTurnstileToken('')
+        setVoteTurnstileToken('')
+        setSelectedCandidate(null)
+        setIsBlank(false)
+        setConfirmOpen(false)
+        setStage('success')
+      }
+    } catch (caught) {
+      setError(mapVotingError(caught))
+    } finally {
+      setSubmitting(false)
     }
-    setSubmitting(false)
   }
 
   if (loading)
@@ -169,7 +158,7 @@ export function VotingFlowPage() {
       </div>
     )
 
-  const outsideVotingWindow = isOutsideVotingWindow(election)
+  const availability = getVotingAvailability(election)
 
   return (
     <div className="voting-page container">
@@ -204,11 +193,7 @@ export function VotingFlowPage() {
           A votação exige conexão ativa. Nenhuma operação será confirmada offline.
         </Alert>
       )}
-      {outsideVotingWindow && (
-        <Alert tone="warning" title="Votação fora do horário">
-          A votação está aberta, mas fora do horário permitido. {votingWindowLabel(election)}
-        </Alert>
-      )}
+      {!availability.available && <Alert tone="warning">{availability.message}</Alert>}
       {error && <Alert tone="error">{error}</Alert>}
       {stage === 'access' && (
         <div className="voting-grid">
@@ -223,14 +208,15 @@ export function VotingFlowPage() {
                 <InputCPF
                   value={cpf}
                   onChange={(event) => setCpf(event.target.value)}
-                  disabled={submitting || offline || outsideVotingWindow}
+                  disabled={submitting || offline || !availability.available}
                   required
                   hint="Seu CPF é usado somente para validar a elegibilidade e impedir duplicidade."
                 />
+                <TurnstileWidget action="voter_access" onToken={setAccessTurnstileToken} />
                 <Button
                   type="submit"
                   className="full-width"
-                  disabled={submitting || offline || outsideVotingWindow}
+                  disabled={submitting || offline || !availability.available}
                 >
                   {submitting ? 'Consultando CPF...' : 'Acessar votação'}{' '}
                   <span aria-hidden="true">→</span>
@@ -291,7 +277,7 @@ export function VotingFlowPage() {
               className="button button-ghost"
               onClick={() => {
                 setCpf('')
-                setCpfHash('')
+                setAccessTurnstileToken('')
                 setVoter(null)
                 setStage('access')
               }}
@@ -371,6 +357,7 @@ export function VotingFlowPage() {
             </div>
           )}
           <div className="ballot-actions">
+            <TurnstileWidget action="cast_vote" onToken={setVoteTurnstileToken} />
             <Button
               disabled={!selectedCandidate && !isBlank}
               onClick={() => {

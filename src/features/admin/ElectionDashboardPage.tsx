@@ -14,6 +14,7 @@ import {
 } from '../../lib/admin/electionService'
 import { supabase } from '../../lib/supabase/client'
 import type { ElectionStatus } from '../../lib/supabase/types'
+import { isElectionWindowExpired } from '../../lib/voting/votingAvailability'
 
 interface Metrics {
   voters: number
@@ -29,21 +30,27 @@ export function ElectionDashboardPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    void Promise.all([
-      getElection(id),
-      supabase?.from('voters').select('id,has_voted').eq('election_id', id),
-      supabase?.from('candidates').select('id').eq('election_id', id).eq('active', true),
-    ]).then(([electionResult, votersResult, candidatesResult]) => {
-      setElection(electionResult.data as ElectionWithCompany | null)
-      const voters = (votersResult?.data ?? []) as { id: string; has_voted: boolean }[]
-      setMetrics({
-        voters: voters.length,
-        candidates: candidatesResult?.data?.length ?? 0,
-        voted: voters.filter((voter) => voter.has_voted).length,
-      })
-      if (electionResult.error) setError('Não foi possível carregar esta eleição.')
-      setLoading(false)
-    })
+    void (async () => {
+      try {
+        const [electionResult, votersResult, candidatesResult] = await Promise.all([
+          getElection(id),
+          supabase?.from('voters').select('id,has_voted').eq('election_id', id),
+          supabase?.from('candidates').select('id').eq('election_id', id).eq('active', true),
+        ])
+        setElection(electionResult.data as ElectionWithCompany | null)
+        const voters = (votersResult?.data ?? []) as { id: string; has_voted: boolean }[]
+        setMetrics({
+          voters: voters.length,
+          candidates: candidatesResult?.data?.length ?? 0,
+          voted: voters.filter((voter) => voter.has_voted).length,
+        })
+        if (electionResult.error) setError('Não foi possível carregar esta eleição.')
+      } catch {
+        setError('Não foi possível carregar esta eleição.')
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [id])
 
   async function changeStatus(target: ElectionStatus) {
@@ -61,8 +68,9 @@ export function ElectionDashboardPage() {
   const canPause = election.status === 'open'
   const canResume = election.status === 'paused'
   const canClose = election.status === 'open' || election.status === 'paused'
-  const votingWindowExpired =
-    election.status === 'open' && Date.now() > new Date(election.voting_end).getTime()
+  const votingWindowExpired = isElectionWindowExpired(election.status, election.voting_end)
+  const scheduledWindowExpired =
+    election.status === 'scheduled' && Date.now() > new Date(election.voting_start).getTime()
 
   return (
     <div className="admin-page">
@@ -79,6 +87,11 @@ export function ElectionDashboardPage() {
         <Alert tone="warning" title="Janela de votação encerrada">
           A eleição está com status Aberta, mas o horário de encerramento já foi ultrapassado.
           Encerre a votação ou ajuste a janela de horário.
+        </Alert>
+      )}
+      {scheduledWindowExpired && (
+        <Alert tone="warning" title="Eleição agendada com horário vencido">
+          O horário inicial já foi ultrapassado. Abra a votação ou ajuste a janela de horário.
         </Alert>
       )}
       <div className="metric-grid">

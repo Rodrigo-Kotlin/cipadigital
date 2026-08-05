@@ -26,14 +26,14 @@ export async function getElectionBySlug(
 
 export async function verifyVoterAccess(
   slug: string,
-  cpfHash: string,
+  cpf: string,
+  turnstileToken: string,
 ): Promise<{ data: VoterAccessResult | null; error: Error | null }> {
   if (!supabase) return { data: null, error: new Error('SUPABASE_NOT_CONFIGURED') }
-  const { data, error } = await supabase.rpc('verify_voter_access', {
-    p_election_slug: slug,
-    p_cpf_hash: cpfHash,
+  const { data, error } = await supabase.functions.invoke<VoterAccessResult>('voter-gateway', {
+    body: { action: 'voter_access', electionSlug: slug, cpf, turnstileToken },
   })
-  return { data: (Array.isArray(data) ? data[0] : data) as VoterAccessResult | null, error }
+  return { data: data ?? null, error }
 }
 
 export async function getActiveCandidates(
@@ -46,16 +46,21 @@ export async function getActiveCandidates(
 
 export async function submitVote(
   slug: string,
-  cpfHash: string,
+  cpf: string,
   candidateId: string | null,
   isBlank: boolean,
+  turnstileToken: string,
 ) {
   if (!supabase) return { data: null, error: new Error('SUPABASE_NOT_CONFIGURED') }
-  return supabase.rpc('cast_vote', {
-    p_election_slug: slug,
-    p_cpf_hash: cpfHash,
-    p_candidate_id: candidateId,
-    p_is_blank: isBlank,
+  return supabase.functions.invoke('voter-gateway', {
+    body: {
+      action: 'cast_vote',
+      electionSlug: slug,
+      cpf,
+      candidateId,
+      isBlank,
+      turnstileToken,
+    },
   })
 }
 
@@ -72,6 +77,10 @@ export function mapVotingError(error: unknown): string {
     return 'Eleitor não habilitado para votação. Procure a Comissão Eleitoral.'
   if (message.includes('VOTER_ALREADY_VOTED'))
     return 'Voto já registrado para este CPF. Obrigado pela participação.'
+  if (message.includes('TURNSTILE_FAILED'))
+    return 'A verificação de segurança expirou ou falhou. Tente novamente.'
+  if (message.includes('GATEWAY_NOT_CONFIGURED'))
+    return 'A verificação de segurança está temporariamente indisponível. Procure a Comissão Eleitoral.'
   if (message.includes('SUPABASE_NOT_CONFIGURED'))
     return 'A votação está temporariamente indisponível. Procure a Comissão Eleitoral.'
   if (message.includes('SUPABASE_REQUEST_TIMEOUT'))

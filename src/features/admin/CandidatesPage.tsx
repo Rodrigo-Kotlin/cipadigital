@@ -45,15 +45,20 @@ export function CandidatesPage() {
       setError('Supabase não configurado.')
       return
     }
-    const [electionResult, candidatesResult] = await Promise.all([
-      getElection(id),
-      supabase.from('candidates').select('*').eq('election_id', id).order('display_order'),
-    ])
-    setElection(electionResult.data as ElectionWithCompany | null)
-    setCandidates((candidatesResult.data as Candidate[] | null) ?? [])
-    if (electionResult.error || candidatesResult.error)
+    try {
+      const [electionResult, candidatesResult] = await Promise.all([
+        getElection(id),
+        supabase.from('candidates').select('*').eq('election_id', id).order('display_order'),
+      ])
+      setElection(electionResult.data as ElectionWithCompany | null)
+      setCandidates((candidatesResult.data as Candidate[] | null) ?? [])
+      if (electionResult.error || candidatesResult.error)
+        setError('Não foi possível carregar os candidatos.')
+    } catch {
       setError('Não foi possível carregar os candidatos.')
-    setLoading(false)
+    } finally {
+      setLoading(false)
+    }
   }
 
   // load is scoped to this page and the election id is the only trigger.
