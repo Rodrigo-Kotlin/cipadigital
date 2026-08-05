@@ -22,7 +22,7 @@ export function AppShell({ children }: AppShellProps) {
             </span>
           </Link>
           <nav className="site-nav" aria-label="Navegação principal">
-            <Link to="/votar">Acessar votação</Link>
+            <Link to="/votar/arati-2026-2027">Acessar votação</Link>
             <Link to="/admin">Área administrativa</Link>
           </nav>
         </div>

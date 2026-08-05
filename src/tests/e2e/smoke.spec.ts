@@ -4,7 +4,10 @@ test('home page is reachable', async ({ page }) => {
   await page.goto('/')
 
   await expect(page.getByRole('heading', { name: /uma votação mais simples/i })).toBeVisible()
-  await expect(page.locator('a.button-primary').first()).toHaveAttribute('href', '/votar')
+  await expect(page.locator('a.button-primary').first()).toHaveAttribute(
+    'href',
+    '/votar/arati-2026-2027',
+  )
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
   ).toBe(true)

@@ -11,12 +11,12 @@ import { VotersPage } from '../features/admin/VotersPage'
 import { PresencePage } from '../features/admin/PresencePage'
 import { ElectionSettingsPage } from '../features/admin/ElectionSettingsPage'
 import { ApurationPage } from '../features/admin/ApurationPage'
-import { VotingPage } from '../features/voting/VotingPage'
 import { VotingFlowPage } from '../features/voting/VotingFlowPage'
+import { Navigate } from 'react-router-dom'
 
 export const routes: RouteObject[] = [
   { path: '/', element: <HomePage /> },
-  { path: '/votar', element: <VotingPage /> },
+  { path: '/votar', element: <Navigate to="/votar/arati-2026-2027" replace /> },
   { path: '/votar/:electionSlug', element: <VotingFlowPage /> },
   { path: '/admin/login', element: <AdminLoginPage /> },
   {

@@ -13,7 +13,7 @@ export function HomePage() {
             anônimo, apuração segura e evidências documentais.
           </p>
           <div className="hero-actions">
-            <Link className="button button-primary" to="/votar">
+            <Link className="button button-primary" to="/votar/arati-2026-2027">
               Acessar votação <span aria-hidden="true">→</span>
             </Link>
             <Link className="button button-secondary" to="/admin">

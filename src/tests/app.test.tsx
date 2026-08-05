@@ -23,19 +23,17 @@ describe('CIPA Digital layouts', () => {
     renderAt('/')
 
     const votingLinks = screen.getAllByRole('link', { name: /acessar votação/i })
-    expect(votingLinks.some((link) => link.getAttribute('href') === '/votar')).toBe(true)
+    expect(votingLinks.some((link) => link.getAttribute('href') === '/votar/arati-2026-2027')).toBe(
+      true,
+    )
     const adminLinks = screen.getAllByRole('link', { name: /área administrativa/i })
     expect(adminLinks.some((link) => link.getAttribute('href') === '/admin')).toBe(true)
   })
 
-  it('renders the voting placeholder layout', () => {
+  it('routes the generic voting entry to the functional election flow', async () => {
     renderAt('/votar')
 
-    expect(screen.getByText(/módulo em preparação/i)).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: /identifique-se para começar/i }),
-    ).toBeInTheDocument()
-    expect(screen.getByLabelText('CPF do eleitor')).toBeInTheDocument()
+    expect(await screen.findByText(/carregando dados da eleição/i)).toBeInTheDocument()
   })
 
   it('redirects unauthenticated administrators to login', async () => {
