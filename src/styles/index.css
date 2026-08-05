@@ -276,13 +276,17 @@ p {
   height: 48px;
   display: grid;
   place-items: center;
+  flex: 0 0 48px;
+  line-height: 0;
   border-radius: 15px;
   color: white;
   background: var(--green);
 }
 .visual-icon svg {
-  width: 27px;
-  height: 27px;
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: 0;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
