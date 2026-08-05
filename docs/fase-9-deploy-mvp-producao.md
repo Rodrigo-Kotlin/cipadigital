@@ -31,6 +31,7 @@ O projeto Pages esta conectado ao repositorio GitHub `Rodrigo-Kotlin/cipadigital
 - [x] Rota publica `/votar/arati-2026-2027`.
 - [x] Rota `/admin` entregue pelo Pages.
 - [x] Edge Function `hash-cpf`.
+- [x] Storage `candidate-photos` com upload administrativo.
 - [x] Supabase sem eleitores/votos ficticios.
 - [x] Smoke tests Playwright diretamente em `https://cipadigital.pages.dev` (15 aprovados).
 - [x] Login administrativo real na URL publica.
@@ -70,6 +71,17 @@ Nenhum eleitor real foi cadastrado. A migration ja existente e o administrador A
 - [ ] Executar votacao controlada, apuracao e relatorios.
 - [ ] Remover novamente dados de teste.
 - [ ] Registrar anonimato e logs do teste publico.
+
+## Fotos de candidatos
+
+O bucket publico `candidate-photos` foi criado no Supabase e protegido por policies de Storage. A escrita, alteracao e remocao exigem usuario autenticado ativo em `admin_users`; a leitura publica serve apenas os arquivos de foto.
+
+- Formatos: JPG, JPEG, PNG e WebP.
+- Limite: 2 MB.
+- Caminho: `elections/{electionSlug}/{candidateId}.{ext}`.
+- Preview local antes do envio.
+- Remocao de foto exclui o objeto e limpa `candidates.photo_url`.
+- Fotos sao exibidas no cadastro, no card e na cedula publica.
 
 ## Restricao
 

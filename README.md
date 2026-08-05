@@ -8,6 +8,8 @@ Sistema de Votação Eletrônica da CIPA, desenvolvido como um PWA responsivo, m
 
 O projeto Supabase `cipadigital` foi promovido a produção por decisão formal, e o MVP está publicado em `https://cipadigital.pages.dev`. O smoke test público passou em 15 cenários e a validação funcional pública foi concluída com limpeza dos dados fictícios. A Fase 8.1 moveu o hash de CPF para Edge Function, corrigiu exportação de relatórios, validou impressão no Chrome, removeu os dados fictícios e atualizou os ativos PWA.
 
+O cadastro de candidatos também permite upload de fotos no Storage `candidate-photos`, com formatos JPG/JPEG/PNG/WebP e limite de 2 MB. O upload é restrito a administradores autenticados e as fotos aparecem no cadastro e na cédula.
+
 ## Stack
 
 - React + Vite + TypeScript
