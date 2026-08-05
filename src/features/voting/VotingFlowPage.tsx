@@ -21,6 +21,27 @@ import type { PublicCandidate, PublicElection, VoterAccessResult } from '../../l
 
 type VotingStage = 'access' | 'confirm' | 'ballot' | 'success'
 
+function votingWindowLabel(election: PublicElection): string {
+  const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeZone: 'America/Sao_Paulo',
+  })
+  const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
+    timeStyle: 'short',
+    timeZone: 'America/Sao_Paulo',
+  })
+  return `Período de votação: ${dateFormatter.format(new Date(election.voting_start))}, das ${timeFormatter.format(new Date(election.voting_start))} às ${timeFormatter.format(new Date(election.voting_end))}.`
+}
+
+function isOutsideVotingWindow(election: PublicElection): boolean {
+  const now = Date.now()
+  return (
+    election.status === 'open' &&
+    (now < new Date(election.voting_start).getTime() ||
+      now > new Date(election.voting_end).getTime())
+  )
+}
+
 export function VotingFlowPage() {
   const { electionSlug = '' } = useParams()
   const navigate = useNavigate()
@@ -69,6 +90,12 @@ export function VotingFlowPage() {
     setError('')
     if (offline) {
       setError('Você está offline. Conecte-se à internet para acessar a votação.')
+      return
+    }
+    if (outsideVotingWindow && election) {
+      setError(
+        `A votação está aberta, mas fora do horário permitido. ${votingWindowLabel(election)}`,
+      )
       return
     }
     if (!validateCpf(cpf)) {
@@ -142,6 +169,8 @@ export function VotingFlowPage() {
       </div>
     )
 
+  const outsideVotingWindow = isOutsideVotingWindow(election)
+
   return (
     <div className="voting-page container">
       <div className="voting-event-heading">
@@ -175,6 +204,11 @@ export function VotingFlowPage() {
           A votação exige conexão ativa. Nenhuma operação será confirmada offline.
         </Alert>
       )}
+      {outsideVotingWindow && (
+        <Alert tone="warning" title="Votação fora do horário">
+          A votação está aberta, mas fora do horário permitido. {votingWindowLabel(election)}
+        </Alert>
+      )}
       {error && <Alert tone="error">{error}</Alert>}
       {stage === 'access' && (
         <div className="voting-grid">
@@ -189,11 +223,15 @@ export function VotingFlowPage() {
                 <InputCPF
                   value={cpf}
                   onChange={(event) => setCpf(event.target.value)}
-                  disabled={submitting || offline}
+                  disabled={submitting || offline || outsideVotingWindow}
                   required
                   hint="Seu CPF é usado somente para validar a elegibilidade e impedir duplicidade."
                 />
-                <Button type="submit" className="full-width" disabled={submitting || offline}>
+                <Button
+                  type="submit"
+                  className="full-width"
+                  disabled={submitting || offline || outsideVotingWindow}
+                >
                   {submitting ? 'Consultando CPF...' : 'Acessar votação'}{' '}
                   <span aria-hidden="true">→</span>
                 </Button>

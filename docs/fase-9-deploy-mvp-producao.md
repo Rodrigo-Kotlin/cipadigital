@@ -83,6 +83,10 @@ O bucket publico `candidate-photos` foi criado no Supabase e protegido por polic
 - Remocao de foto exclui o objeto e limpa `candidates.photo_url`.
 - Fotos sao exibidas no cadastro, no card e na cedula publica.
 
+## Janela de votacao
+
+A rota publica agora diferencia uma eleicao `open` dentro e fora do horario configurado. Quando o periodo venceu, o acesso e bloqueado com a janela formatada em horario de `America/Sao_Paulo`, sem alterar o sigilo do voto. O dashboard administrativo exibe alerta para eleicao aberta com `voting_end` ultrapassado.
+
 ## Restricao
 
 A Fase 9 nao adicionou funcionalidades fora do MVP. O deploy foi executado somente apos confirmacao expressa da promocao do projeto atual.

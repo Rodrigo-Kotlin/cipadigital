@@ -28,8 +28,8 @@ const election = {
   company_name: 'ARATI',
   management_period: '2026/2027',
   voting_date: '2026-08-06',
-  voting_start: '2026-08-06T08:00:00Z',
-  voting_end: '2026-08-06T17:00:00Z',
+  voting_start: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+  voting_end: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
   status: 'open',
   allow_blank_vote: true,
 }

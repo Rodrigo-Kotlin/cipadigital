@@ -61,6 +61,8 @@ export function ElectionDashboardPage() {
   const canPause = election.status === 'open'
   const canResume = election.status === 'paused'
   const canClose = election.status === 'open' || election.status === 'paused'
+  const votingWindowExpired =
+    election.status === 'open' && Date.now() > new Date(election.voting_end).getTime()
 
   return (
     <div className="admin-page">
@@ -73,6 +75,12 @@ export function ElectionDashboardPage() {
         description={`${election.management_period} · ${election.companies?.name ?? 'Empresa não vinculada'}`}
       />
       {error && <Alert tone="warning">{error}</Alert>}
+      {votingWindowExpired && (
+        <Alert tone="warning" title="Janela de votação encerrada">
+          A eleição está com status Aberta, mas o horário de encerramento já foi ultrapassado.
+          Encerre a votação ou ajuste a janela de horário.
+        </Alert>
+      )}
       <div className="metric-grid">
         <MetricCard
           label="Eleitores aptos"
