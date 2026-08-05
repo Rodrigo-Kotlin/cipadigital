@@ -3,6 +3,10 @@ import { useEffect, useRef } from 'react'
 const TURNSTILE_SCRIPT_ID = 'cloudflare-turnstile-script'
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAAEHBY97o929Vt55x'
 
+function logTurnstile(event: string, fields: Record<string, unknown> = {}) {
+  console.info(`[turnstile] ${event}`, fields)
+}
+
 type TurnstileWidgetProps = {
   action: string
   onToken: (token: string) => void
@@ -22,10 +26,24 @@ export function TurnstileWidget({ action, onToken, resetKey = 0 }: TurnstileWidg
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
         action,
-        callback: (token) => tokenHandlerRef.current(token),
-        'expired-callback': () => tokenHandlerRef.current(''),
-        'error-callback': () => tokenHandlerRef.current(''),
+        callback: (token) => {
+          logTurnstile('turnstile_success', { action, token_present: token.length > 0 })
+          tokenHandlerRef.current(token)
+        },
+        'expired-callback': () => {
+          logTurnstile('turnstile_expired', { action })
+          tokenHandlerRef.current('')
+        },
+        'error-callback': () => {
+          logTurnstile('turnstile_error', { action })
+          tokenHandlerRef.current('')
+        },
+        'timeout-callback': () => {
+          logTurnstile('turnstile_timeout', { action })
+          tokenHandlerRef.current('')
+        },
       })
+      logTurnstile('turnstile_rendered', { action })
     }
 
     const existingScript = document.getElementById(TURNSTILE_SCRIPT_ID)

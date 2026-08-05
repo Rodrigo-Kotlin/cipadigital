@@ -4,6 +4,7 @@ interface TurnstileRenderOptions {
   callback: (token: string) => void
   'expired-callback'?: () => void
   'error-callback'?: () => void
+  'timeout-callback'?: () => void
 }
 
 interface TurnstileApi {

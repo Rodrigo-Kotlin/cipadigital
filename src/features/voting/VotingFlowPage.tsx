@@ -86,6 +86,9 @@ export function VotingFlowPage() {
     setSubmitting(true)
     try {
       if (!accessTurnstileToken) {
+        console.info('[voter-gateway] gateway_request_blocked_no_token', {
+          action: 'voter_access',
+        })
         setError('Conclua a verificação de segurança para continuar.')
         return
       }
@@ -118,7 +121,10 @@ export function VotingFlowPage() {
   async function confirmVote() {
     if (!election || !cpf || !voteTurnstileToken || (!selectedCandidate && !isBlank) || offline) {
       if (offline) setError('Você está offline. Não é possível registrar o voto.')
-      else if (!voteTurnstileToken) setError('Conclua a verificação de segurança para votar.')
+      else if (!voteTurnstileToken) {
+        console.info('[voter-gateway] gateway_request_blocked_no_token', { action: 'cast_vote' })
+        setError('Conclua a verificação de segurança para votar.')
+      }
       return
     }
     setSubmitting(true)

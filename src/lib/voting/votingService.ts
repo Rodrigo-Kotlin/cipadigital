@@ -1,6 +1,10 @@
 import { supabase } from '../supabase/client'
 import type { PublicCandidate, PublicElection, VoterAccessResult } from '../supabase/types'
 
+function logGateway(event: string, fields: Record<string, unknown> = {}) {
+  console.info(`[voter-gateway] ${event}`, fields)
+}
+
 async function normalizeFunctionError(error: unknown): Promise<Error | null> {
   if (!error) return null
   const context = (error as { context?: unknown }).context
@@ -44,10 +48,18 @@ export async function verifyVoterAccess(
   turnstileToken: string,
 ): Promise<{ data: VoterAccessResult | null; error: Error | null }> {
   if (!supabase) return { data: null, error: new Error('SUPABASE_NOT_CONFIGURED') }
+  if (!turnstileToken) {
+    logGateway('gateway_request_blocked_no_token', { action: 'voter_access' })
+    return { data: null, error: new Error('TURNSTILE_TOKEN_MISSING') }
+  }
+  logGateway('gateway_request_sent', { action: 'voter_access', token_present: true })
   const { data, error } = await supabase.functions.invoke<VoterAccessResult>('voter-gateway', {
     body: { action: 'voter_access', electionSlug: slug, cpf, turnstileToken },
   })
-  return { data: data ?? null, error: await normalizeFunctionError(error) }
+  const normalizedError = await normalizeFunctionError(error)
+  if (normalizedError?.message.includes('TURNSTILE_FAILED'))
+    logGateway('gateway_403_resetting_turnstile', { action: 'voter_access' })
+  return { data: data ?? null, error: normalizedError }
 }
 
 export async function getActiveCandidates(
@@ -66,6 +78,11 @@ export async function submitVote(
   turnstileToken: string,
 ) {
   if (!supabase) return { data: null, error: new Error('SUPABASE_NOT_CONFIGURED') }
+  if (!turnstileToken) {
+    logGateway('gateway_request_blocked_no_token', { action: 'cast_vote' })
+    return { data: null, error: new Error('TURNSTILE_TOKEN_MISSING') }
+  }
+  logGateway('gateway_request_sent', { action: 'cast_vote', token_present: true })
   const result = await supabase.functions.invoke('voter-gateway', {
     body: {
       action: 'cast_vote',
@@ -76,7 +93,10 @@ export async function submitVote(
       turnstileToken,
     },
   })
-  return { data: result.data, error: await normalizeFunctionError(result.error) }
+  const normalizedError = await normalizeFunctionError(result.error)
+  if (normalizedError?.message.includes('TURNSTILE_FAILED'))
+    logGateway('gateway_403_resetting_turnstile', { action: 'cast_vote' })
+  return { data: result.data, error: normalizedError }
 }
 
 export function mapVotingError(error: unknown): string {
@@ -92,8 +112,8 @@ export function mapVotingError(error: unknown): string {
     return 'Eleitor não habilitado para votação. Procure a Comissão Eleitoral.'
   if (message.includes('VOTER_ALREADY_VOTED'))
     return 'Voto já registrado para este CPF. Obrigado pela participação.'
-  if (message.includes('TURNSTILE_FAILED'))
-    return 'A verificação de segurança expirou ou falhou. Tente novamente.'
+  if (message.includes('TURNSTILE_FAILED') || message.includes('TURNSTILE_TOKEN_MISSING'))
+    return 'Não foi possível validar a segurança do acesso. Atualize a página e tente novamente.'
   if (message.includes('GATEWAY_NOT_CONFIGURED'))
     return 'A verificação de segurança está temporariamente indisponível. Procure a Comissão Eleitoral.'
   if (message.includes('SUPABASE_NOT_CONFIGURED'))
