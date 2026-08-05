@@ -1,6 +1,20 @@
 import { supabase } from '../supabase/client'
 import type { PublicCandidate, PublicElection, VoterAccessResult } from '../supabase/types'
 
+async function normalizeFunctionError(error: unknown): Promise<Error | null> {
+  if (!error) return null
+  const context = (error as { context?: unknown }).context
+  if (context instanceof Response) {
+    try {
+      const payload = await context.clone().json()
+      if (typeof payload?.error === 'string') return new Error(payload.error)
+    } catch {
+      // Keep the SDK error when the function response is not JSON.
+    }
+  }
+  return error instanceof Error ? error : new Error(String(error))
+}
+
 export async function getElectionBySlug(
   slug: string,
 ): Promise<{ data: PublicElection | null; error: Error | null }> {
@@ -33,7 +47,7 @@ export async function verifyVoterAccess(
   const { data, error } = await supabase.functions.invoke<VoterAccessResult>('voter-gateway', {
     body: { action: 'voter_access', electionSlug: slug, cpf, turnstileToken },
   })
-  return { data: data ?? null, error }
+  return { data: data ?? null, error: await normalizeFunctionError(error) }
 }
 
 export async function getActiveCandidates(
@@ -52,7 +66,7 @@ export async function submitVote(
   turnstileToken: string,
 ) {
   if (!supabase) return { data: null, error: new Error('SUPABASE_NOT_CONFIGURED') }
-  return supabase.functions.invoke('voter-gateway', {
+  const result = await supabase.functions.invoke('voter-gateway', {
     body: {
       action: 'cast_vote',
       electionSlug: slug,
@@ -62,6 +76,7 @@ export async function submitVote(
       turnstileToken,
     },
   })
+  return { data: result.data, error: await normalizeFunctionError(result.error) }
 }
 
 export function mapVotingError(error: unknown): string {
