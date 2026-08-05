@@ -274,8 +274,9 @@ p {
 .visual-icon {
   width: 48px;
   height: 48px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 48px;
   line-height: 0;
   border-radius: 15px;
@@ -286,7 +287,7 @@ p {
   display: block;
   width: 26px;
   height: 26px;
-  margin: 0;
+  margin: 0 auto;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
