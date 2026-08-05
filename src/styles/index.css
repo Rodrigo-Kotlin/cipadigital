@@ -279,8 +279,14 @@ p {
   border-radius: 15px;
   color: white;
   background: var(--green);
-  font-size: 1.5rem;
-  font-weight: 800;
+}
+.visual-icon::before {
+  content: '';
+  width: 11px;
+  height: 21px;
+  border-right: 4px solid #fff;
+  border-bottom: 4px solid #fff;
+  transform: rotate(45deg) translate(-2px, -2px);
 }
 .visual-card strong,
 .visual-card span {

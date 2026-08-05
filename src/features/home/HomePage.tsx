@@ -28,9 +28,7 @@ export function HomePage() {
           <div className="visual-orbit orbit-one" />
           <div className="visual-orbit orbit-two" />
           <div className="visual-card">
-            <span className="visual-icon" aria-hidden="true">
-              ✓
-            </span>
+            <span className="visual-icon" aria-hidden="true" />
             <div>
               <strong>Processo protegido</strong>
               <span>Presença identificada</span>
