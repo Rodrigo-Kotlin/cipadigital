@@ -2,7 +2,7 @@
 
 ## Status
 
-**Status: MVP publicado; smoke test publico aprovado; fluxo autenticado pendente.**
+**Status: MVP publicado; validacao funcional publica concluida e dados de teste removidos.**
 
 Por decisao formal, o projeto `cipadigital`, referencia `kdjxexoexwznkwccvrqi`, foi promovido para producao. Os dados ficticios foram removidos antes da publicacao: `voters = 0` e `votes = 0`.
 
@@ -33,9 +33,10 @@ O projeto Pages esta conectado ao repositorio GitHub `Rodrigo-Kotlin/cipadigital
 - [x] Edge Function `hash-cpf`.
 - [x] Supabase sem eleitores/votos ficticios.
 - [x] Smoke tests Playwright diretamente em `https://cipadigital.pages.dev` (15 aprovados).
-- [ ] Login administrativo real na URL publica.
-- [ ] Votacao controlada com eleitores ficticios no dominio publico.
-- [ ] Validacao visual final no dominio publico.
+- [x] Login administrativo real na URL publica.
+- [x] Votacao controlada com eleitores ficticios no dominio publico.
+- [x] Apuracao, relatorios, logs e anonimato conferidos.
+- [x] Dados ficticios removidos apos o teste.
 
 ## Comandos finais
 
@@ -45,6 +46,21 @@ O projeto Pages esta conectado ao repositorio GitHub `Rodrigo-Kotlin/cipadigital
 - `npm run format:check`: aprovado.
 - `npx playwright test --workers=1`: 15 testes aprovados.
 - `npm audit --audit-level=high`: aprovado sem vulnerabilidades altas; 2 moderadas do React Router permanecem documentadas.
+
+## Resultado da validacao funcional publica
+
+- Dois eleitores ativos participaram: um voto nominal e um voto em branco.
+- Segunda tentativa do primeiro eleitor bloqueada por duplicidade.
+- Eleitor bloqueado impedido.
+- Eleicao encerrada e confirmada como `tallied` durante a apuracao.
+- Presenca: 2 registros; votos: 2 registros.
+- Relatorios de presenca, participacao, apuracao, resultado e ata foram gerados no dominio publico.
+- Logs de transicao e relatorios foram registrados.
+- Anonimato confirmado: `votes` sem CPF, nome, `voter_id`, matricula, setor ou funcao.
+
+## Limpeza final
+
+Depois da validacao, foram removidos todos os eleitores e votos ficticios. A eleicao ARATI foi retornada para `draft`, com `voters = 0` e `votes = 0`.
 
 Nenhum eleitor real foi cadastrado. A migration ja existente e o administrador Auth foram mantidos no projeto promovido.
 
