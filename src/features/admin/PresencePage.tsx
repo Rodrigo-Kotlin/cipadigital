@@ -73,6 +73,9 @@ export function PresencePage() {
         description="Acompanhe quem já foi registrado sem acessar o conteúdo de nenhum voto."
       />
       {error && <Alert tone="warning">{error}</Alert>}
+      <Alert tone="info">
+        Esta lista mostra apenas a participação dos eleitores. O voto permanece anônimo.
+      </Alert>
       <div className="metric-grid">
         <MetricCard label="Eleitores aptos" value={String(voters.length)} detail="Base atual" />
         <MetricCard
@@ -136,6 +139,11 @@ export function PresencePage() {
                 key: 'department',
                 label: 'Setor',
                 render: (row) => row.department ?? 'Não informado',
+              },
+              {
+                key: 'role',
+                label: 'Função/Cargo',
+                render: (row) => row.role ?? 'Não informado',
               },
               {
                 key: 'status',
