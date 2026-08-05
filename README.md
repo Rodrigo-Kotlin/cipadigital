@@ -12,6 +12,8 @@ A auditoria completa está documentada em `docs/auditoria-completa-frontend-back
 
 O acesso público e o envio do voto usam Cloudflare Turnstile. O widget `0x4AAAAAAEHBY97o929Vt55x` protege as ações `voter_access` e `cast_vote`; a validação `siteverify`, o hash do CPF e as chamadas RPC ocorrem na Edge Function `voter-gateway`. A secret `TURNSTILE_SECRET_KEY` está somente nos secrets do Supabase.
 
+A tipografia principal do PWA usa Sora empacotada localmente via `@fontsource/sora`, nos pesos 400, 500, 600, 700 e 800. A implementação e a validação visual estão documentadas em `docs/melhoria-tipografia-sora.md`.
+
 O cadastro de candidatos também permite upload de fotos no Storage `candidate-photos`, com formatos JPG/JPEG/PNG/WebP e limite de 2 MB. O upload é restrito a administradores autenticados e as fotos aparecem no cadastro e na cédula.
 
 ## Stack
@@ -68,6 +70,7 @@ docs/
   fase-8.1-correcoes-pre-producao.md
   fase-9-deploy-mvp-producao.md
   auditoria-completa-frontend-backend-ui-ux.md
+  melhoria-tipografia-sora.md
 supabase/
   migrations/0001_initial_schema.sql
   migrations/0005_turnstile_gateway.sql
