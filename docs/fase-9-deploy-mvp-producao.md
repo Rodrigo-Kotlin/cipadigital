@@ -8,9 +8,9 @@ Por decisao formal, o projeto `cipadigital`, referencia `kdjxexoexwznkwccvrqi`, 
 
 O deploy foi realizado no Cloudflare Pages, projeto `cipa-digital`, conta `f7c78675b59e662f0c5adda33cc14e19`.
 
-URL publica: `https://a0a8b2a3.cipa-digital.pages.dev`
+URL publica principal: `https://cipadigital.pages.dev`
 
-Deployment ID: `a0a8b2a3-d04e-4527-b594-c2361540c521`
+O projeto Pages esta conectado ao repositorio GitHub `Rodrigo-Kotlin/cipadigital`, branch `main`.
 
 ## Preparado
 
