@@ -159,7 +159,14 @@ Deno.serve(async (request) => {
     })
     if (!['voter_access', 'cast_vote'].includes(action) || !verification.allowed) {
       logEvent('decision', { decision: 'deny', deny_reason: verification.reason })
-      return Response.json({ error: 'TURNSTILE_FAILED' }, { status: 403, headers: corsHeaders })
+      return Response.json(
+        {
+          error: 'TURNSTILE_FAILED',
+          diagnostic: verification.reason,
+          turnstile_error_codes: verification.errorCodes,
+        },
+        { status: 403, headers: corsHeaders },
+      )
     }
 
     const cpf = normalizeCpf(body.cpf)

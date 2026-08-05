@@ -11,6 +11,13 @@ async function normalizeFunctionError(error: unknown): Promise<Error | null> {
   if (context instanceof Response) {
     try {
       const payload = await context.clone().json()
+      if (typeof payload?.diagnostic === 'string')
+        console.info('[voter-gateway] gateway_diagnostic', {
+          diagnostic: payload.diagnostic,
+          turnstile_error_codes: Array.isArray(payload.turnstile_error_codes)
+            ? payload.turnstile_error_codes
+            : [],
+        })
       if (typeof payload?.error === 'string') return new Error(payload.error)
     } catch {
       // Keep the SDK error when the function response is not JSON.
