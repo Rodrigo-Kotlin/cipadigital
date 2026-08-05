@@ -31,6 +31,8 @@ export function VotingFlowPage() {
   const [cpf, setCpf] = useState('')
   const [accessTurnstileToken, setAccessTurnstileToken] = useState('')
   const [voteTurnstileToken, setVoteTurnstileToken] = useState('')
+  const [accessTurnstileReset, setAccessTurnstileReset] = useState(0)
+  const [voteTurnstileReset, setVoteTurnstileReset] = useState(0)
   const [selectedCandidate, setSelectedCandidate] = useState<PublicCandidate | null>(null)
   const [isBlank, setIsBlank] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -89,6 +91,8 @@ export function VotingFlowPage() {
       }
       const access = await verifyVoterAccess(electionSlug, cpf, accessTurnstileToken)
       if (access.error || !access.data?.allowed) {
+        setAccessTurnstileToken('')
+        setAccessTurnstileReset((value) => value + 1)
         setError(
           mapVotingError(access.error ?? new Error(access.data?.reason ?? 'VOTER_NOT_FOUND')),
         )
@@ -103,6 +107,8 @@ export function VotingFlowPage() {
       setCandidates(candidateResult.data)
       setStage('confirm')
     } catch (caught) {
+      setAccessTurnstileToken('')
+      setAccessTurnstileReset((value) => value + 1)
       setError(mapVotingError(caught))
     } finally {
       setSubmitting(false)
@@ -125,8 +131,11 @@ export function VotingFlowPage() {
         isBlank,
         voteTurnstileToken,
       )
-      if (result.error) setError(mapVotingError(result.error))
-      else {
+      if (result.error) {
+        setVoteTurnstileToken('')
+        setVoteTurnstileReset((value) => value + 1)
+        setError(mapVotingError(result.error))
+      } else {
         setCpf('')
         setAccessTurnstileToken('')
         setVoteTurnstileToken('')
@@ -136,6 +145,8 @@ export function VotingFlowPage() {
         setStage('success')
       }
     } catch (caught) {
+      setVoteTurnstileToken('')
+      setVoteTurnstileReset((value) => value + 1)
       setError(mapVotingError(caught))
     } finally {
       setSubmitting(false)
@@ -212,11 +223,17 @@ export function VotingFlowPage() {
                   required
                   hint="Seu CPF é usado somente para validar a elegibilidade e impedir duplicidade."
                 />
-                <TurnstileWidget action="voter_access" onToken={setAccessTurnstileToken} />
+                <TurnstileWidget
+                  action="voter_access"
+                  onToken={setAccessTurnstileToken}
+                  resetKey={accessTurnstileReset}
+                />
                 <Button
                   type="submit"
                   className="full-width"
-                  disabled={submitting || offline || !availability.available}
+                  disabled={
+                    submitting || offline || !availability.available || !accessTurnstileToken
+                  }
                 >
                   {submitting ? 'Consultando CPF...' : 'Acessar votação'}{' '}
                   <span aria-hidden="true">→</span>
@@ -278,6 +295,7 @@ export function VotingFlowPage() {
               onClick={() => {
                 setCpf('')
                 setAccessTurnstileToken('')
+                setAccessTurnstileReset((value) => value + 1)
                 setVoter(null)
                 setStage('access')
               }}
@@ -357,7 +375,11 @@ export function VotingFlowPage() {
             </div>
           )}
           <div className="ballot-actions">
-            <TurnstileWidget action="cast_vote" onToken={setVoteTurnstileToken} />
+            <TurnstileWidget
+              action="cast_vote"
+              onToken={setVoteTurnstileToken}
+              resetKey={voteTurnstileReset}
+            />
             <Button
               disabled={!selectedCandidate && !isBlank}
               onClick={() => {

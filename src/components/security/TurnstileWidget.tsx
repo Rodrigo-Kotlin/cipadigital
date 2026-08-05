@@ -6,9 +6,10 @@ const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAA
 type TurnstileWidgetProps = {
   action: string
   onToken: (token: string) => void
+  resetKey?: number
 }
 
-export function TurnstileWidget({ action, onToken }: TurnstileWidgetProps) {
+export function TurnstileWidget({ action, onToken, resetKey = 0 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | undefined>(undefined)
   const tokenHandlerRef = useRef(onToken)
@@ -47,7 +48,7 @@ export function TurnstileWidget({ action, onToken }: TurnstileWidgetProps) {
         widgetIdRef.current = undefined
       }
     }
-  }, [action])
+  }, [action, resetKey])
 
   return (
     <div ref={containerRef} className="turnstile-widget" aria-label="Verificação de segurança" />
