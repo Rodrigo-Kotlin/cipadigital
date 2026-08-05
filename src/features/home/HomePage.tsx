@@ -28,7 +28,12 @@ export function HomePage() {
           <div className="visual-orbit orbit-one" />
           <div className="visual-orbit orbit-two" />
           <div className="visual-card">
-            <span className="visual-icon" aria-hidden="true" />
+            <span className="visual-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M12 3 19 6v5c0 4.7-2.9 8.1-7 10-4.1-1.9-7-5.3-7-10V6l7-3Z" />
+                <path d="m8.5 12 2.2 2.2 4.8-5" />
+              </svg>
+            </span>
             <div>
               <strong>Processo protegido</strong>
               <span>Presença identificada</span>
