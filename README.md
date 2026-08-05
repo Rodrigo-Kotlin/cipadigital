@@ -6,7 +6,7 @@ Sistema de Votação Eletrônica da CIPA, desenvolvido como um PWA responsivo, m
 
 **Fase 9 - Deploy MVP** publicado no Cloudflare Pages.
 
-O projeto Supabase `cipadigital` foi promovido a produção por decisão formal, e o MVP está publicado em `https://cipadigital.pages.dev`. A Fase 8.1 moveu o hash de CPF para Edge Function, corrigiu exportação de relatórios, validou impressão no Chrome, removeu os dados fictícios e atualizou os ativos PWA. Login administrativo real, eleitores reais e domínio definitivo permanecem pendentes.
+O projeto Supabase `cipadigital` foi promovido a produção por decisão formal, e o MVP está publicado em `https://cipadigital.pages.dev`. O smoke test público passou em 15 cenários. A Fase 8.1 moveu o hash de CPF para Edge Function, corrigiu exportação de relatórios, validou impressão no Chrome, removeu os dados fictícios e atualizou os ativos PWA. Login administrativo no domínio público e teste controlado de votação permanecem pendentes.
 
 ## Stack
 

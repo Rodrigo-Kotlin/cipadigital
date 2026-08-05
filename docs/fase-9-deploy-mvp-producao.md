@@ -2,11 +2,11 @@
 
 ## Status
 
-**Status: MVP publicado; validacao final controlada concluida.**
+**Status: MVP publicado; smoke test publico aprovado; fluxo autenticado pendente.**
 
 Por decisao formal, o projeto `cipadigital`, referencia `kdjxexoexwznkwccvrqi`, foi promovido para producao. Os dados ficticios foram removidos antes da publicacao: `voters = 0` e `votes = 0`.
 
-O deploy foi realizado no Cloudflare Pages, projeto `cipa-digital`, conta `f7c78675b59e662f0c5adda33cc14e19`.
+O deploy foi realizado no Cloudflare Pages, projeto `cipadigital`, conectado ao GitHub. O commit de validacao atual e `5215a64`.
 
 URL publica principal: `https://cipadigital.pages.dev`
 
@@ -15,8 +15,8 @@ O projeto Pages esta conectado ao repositorio GitHub `Rodrigo-Kotlin/cipadigital
 ## Preparado
 
 - Build de producao validado na Fase 8.1.
-- Edge Function `hash-cpf` publicada somente em homologacao.
-- Migration `0001_initial_schema.sql` pronta para aplicacao controlada.
+- Edge Function `hash-cpf` publicada no Supabase promovido a producao.
+- Migration `0001_initial_schema.sql` ja aplicada no projeto promovido.
 - Variaveis publicas esperadas: `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`.
 - `VITE_CPF_HASH_SALT` nao deve ser configurado.
 - PWA, relatorios, anonimato e limpeza de dados ficticios validados em homologacao.
@@ -32,9 +32,10 @@ O projeto Pages esta conectado ao repositorio GitHub `Rodrigo-Kotlin/cipadigital
 - [x] Rota `/admin` entregue pelo Pages.
 - [x] Edge Function `hash-cpf`.
 - [x] Supabase sem eleitores/votos ficticios.
+- [x] Smoke tests Playwright diretamente em `https://cipadigital.pages.dev` (15 aprovados).
 - [ ] Login administrativo real na URL publica.
-- [ ] Votacao real com eleitores reais.
-- [ ] Validacao visual final no dominio definitivo.
+- [ ] Votacao controlada com eleitores ficticios no dominio publico.
+- [ ] Validacao visual final no dominio publico.
 
 ## Comandos finais
 
@@ -47,18 +48,12 @@ O projeto Pages esta conectado ao repositorio GitHub `Rodrigo-Kotlin/cipadigital
 
 Nenhum eleitor real foi cadastrado. A migration ja existente e o administrador Auth foram mantidos no projeto promovido.
 
-## Checklist apos desbloqueio
+## Checklist restante
 
-- [ ] Confirmar project ref de producao diferente de `kdjxexoexwznkwccvrqi`.
-- [ ] Aplicar migration com controle e verificar RLS/RPCs.
-- [ ] Configurar `CPF_HASH_SALT` somente como secret server-side.
-- [ ] Publicar `hash-cpf` em producao.
-- [ ] Criar e vincular administrador Auth.
-- [ ] Configurar variaveis do front-end no provedor.
-- [ ] Publicar build e validar URL publica.
-- [ ] Testar PWA, login, votacao controlada, apuracao e relatorios.
-- [ ] Remover dados de teste.
-- [ ] Registrar anonimato e logs.
+- [ ] Fazer login administrativo na URL publica.
+- [ ] Executar votacao controlada, apuracao e relatorios.
+- [ ] Remover novamente dados de teste.
+- [ ] Registrar anonimato e logs do teste publico.
 
 ## Restricao
 
