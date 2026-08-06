@@ -36,8 +36,8 @@ export function VotingPage() {
               </Button>
             </form>
             <p className="form-disclaimer">
-              O acesso à votação estará disponível durante o período definido pela Comissão
-              Eleitoral.
+              Seu CPF será usado apenas para validar sua participação. O voto é secreto e registrado
+              de forma anônima.
             </p>
           </Card>
           <Link className="back-link" to="/">
