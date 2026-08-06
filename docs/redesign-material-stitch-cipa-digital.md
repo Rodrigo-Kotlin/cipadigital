@@ -52,18 +52,23 @@ A mensagem pública obrigatória está presente: “Seu CPF será usado apenas p
 
 Registro de preservação solicitado para `arati-2026-2027`:
 
-| Campo                     | Estado registrado                                                                       |
-| ------------------------- | --------------------------------------------------------------------------------------- |
-| slug                      | `arati-2026-2027`                                                                       |
-| status final              | Não verificável neste checkout; o seed local é apenas `draft` e não representa produção |
-| voters                    | `53` no seed/documentação                                                               |
-| active_candidates         | `4` definidos no seed; contagem de produção não foi consultada                          |
-| candidate_photos          | `4` informado no requisito; não verificado localmente                                   |
-| votes                     | Total final real não disponível localmente                                              |
-| relatórios coletados      | Sim, conforme solicitação                                                               |
-| arquivos finais coletados | Sim, conforme solicitação                                                               |
+| Campo                     | Estado registrado         |
+| ------------------------- | ------------------------- |
+| slug                      | `arati-2026-2027`         |
+| status final              | `closed`                  |
+| voters                    | `53`                      |
+| votantes                  | `37`                      |
+| active_candidates         | `4`                       |
+| candidate_photos          | `4`                       |
+| votes                     | `37`                      |
+| blank_votes               | `0`                       |
+| participation             | `69.81%`                  |
+| relatórios coletados      | Sim, conforme solicitação |
+| arquivos finais coletados | Sim, conforme solicitação |
 
-Nenhum dado da ARATI foi limpo, reaberto, alterado ou reprocessado. A ausência de acesso ao estado de produção e ao total real de votos é uma pendência de conferência antes do merge.
+Nenhum dado da ARATI foi limpo, reaberto, alterado ou reprocessado. A conferência administrativa confirmou `election_id = 0ad0100b-0bdf-4609-b1fe-50d32343ccd4`, status `closed`, presença de 37 votantes e apuração agregada de 37 votos.
+
+A consulta anterior que indicou `votes = 0` foi feita pela leitura direta da tabela `votes` via PostgREST. Como não há policy de leitura para `votes`, essa consulta retornou zero linhas sob RLS. A RPC `get_election_tally`, que é a origem do painel e executa com `SECURITY DEFINER`, retornou corretamente `total_votes = 37`, `blank_votes = 0`, `total_attendance = 37` e `has_divergence = false`.
 
 ## Testes e pendências
 
