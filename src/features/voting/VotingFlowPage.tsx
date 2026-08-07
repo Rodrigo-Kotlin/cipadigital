@@ -246,7 +246,8 @@ export function VotingFlowPage() {
                 </Button>
               </form>
               <p className="form-disclaimer">
-                O voto será registrado de forma anônima, sem vínculo com seus dados.
+                Seu CPF será usado apenas para validar sua participação. O voto é secreto e
+                registrado de forma anônima.
               </p>
             </Card>
             <Link className="back-link" to="/">
